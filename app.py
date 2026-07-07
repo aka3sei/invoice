@@ -38,44 +38,44 @@ with st.form(key="data_input_form", clear_on_submit=True):
     
     # 📌 基本情報
     st.subheader("👤 基本情報")
-    staff_name = st.text_input("氏名", placeholder="例: 田中　太郎")
     input_date = st.date_input("日付", datetime.date.today())
+    staff_name = st.text_input("氏名", placeholder="例: 田中 太郎")
     
     st.markdown("---")
     
-    # 📌 matsuri 民泊清掃管理業務委託料 (項目C〜F)
+    # 📌 matsuri 民泊清掃管理業務委託料
     st.subheader("📁 matsuri 民泊清掃管理業務委託料")
     col1_1, col1_2 = st.columns(2)
     with col1_1:
-        fee_A = st.number_input("0.0～30.0（単位：㎡）", min_value=0, value=0, step=1)
-        fee_B = st.number_input("30.1～45.0（単位：㎡）", min_value=0, value=0, step=1)
+        fee_A = st.number_input("0.0～30.0（単位：㎡）", min_value=0, value=0, step=1, key="matsuri_minpaku_A")
+        fee_B = st.number_input("30.1～45.0（単位：㎡）", min_value=0, value=0, step=1, key="matsuri_minpaku_B")
     with col1_2:
-        fee_C = st.number_input("45.1～60.0（単位：㎡）", min_value=0, value=0, step=1)
-        fee_D = st.number_input("60.1～75.0（単位：㎡）", min_value=0, value=0, step=1)
+        fee_C = st.number_input("45.1～60.0（単位：㎡）", min_value=0, value=0, step=1, key="matsuri_minpaku_C")
+        fee_D = st.number_input("60.1～75.0（単位：㎡）", min_value=0, value=0, step=1, key="matsuri_minpaku_D")
         
     st.markdown("---")
     
-    # 📌 matsuri 管理清掃時業務委託料 (項目G〜J)
+    # 📌 matsuri 管理清掃時業務委託料
     st.subheader("📁 matsuri 管理清掃時業務委託料")
     col2_1, col2_2 = st.columns(2)
     with col2_1:
-        fee_E = st.number_input("0.0～30.0（単位：㎡）", min_value=0, value=0, step=1)
-        fee_F = st.number_input("30.1～45.0（単位：㎡）", min_value=0, value=0, step=1)
+        fee_E = st.number_input("0.0～30.0（単位：㎡）", min_value=0, value=0, step=1, key="matsuri_kanri_E")
+        fee_F = st.number_input("30.1～45.0（単位：㎡）", min_value=0, value=0, step=1, key="matsuri_kanri_F")
     with col2_2:
-        fee_G = st.number_input("45.1～60.0（単位：㎡）", min_value=0, value=0, step=1)
-        fee_H = st.number_input("60.1～75.0（単位：㎡）", min_value=0, value=0, step=1)
+        fee_G = st.number_input("45.1～60.0（単位：㎡）", min_value=0, value=0, step=1, key="matsuri_kanri_G")
+        fee_H = st.number_input("60.1～75.0（単位：㎡）", min_value=0, value=0, step=1, key="matsuri_kanri_H")
         
     st.markdown("---")
     
-    # 📌 matsuri 研修時業務委託料 (項目K〜N) 
+    # 📌 matsuri 研修時業務委託料
     st.subheader("📁 matsuri 研修時業務委託料")
     col3_1, col3_2 = st.columns(2)
     with col3_1:
-        fee_I = st.number_input("0.0～30.0（単位：㎡）", min_value=0, value=0, step=1)
-        fee_J = st.number_input("30.1～45.0（単位：㎡）", min_value=0, value=0, step=1)
+        fee_I = st.number_input("0.0～30.0（単位：㎡）", min_value=0, value=0, step=1, key="matsuri_kenshu_I")
+        fee_J = st.number_input("30.1～45.0（単位：㎡）", min_value=0, value=0, step=1, key="matsuri_kenshu_J")
     with col3_2:
-        fee_K = st.number_input("45.1～60.0（単位：㎡）", min_value=0, value=0, step=1)
-        fee_L = st.number_input("60.1～75.0（単位：㎡）", min_value=0, value=0, step=1)
+        fee_K = st.number_input("45.1～60.0（単位：㎡）", min_value=0, value=0, step=1, key="matsuri_kenshu_K")
+        fee_L = st.number_input("60.1～75.0（単位：㎡）", min_value=0, value=0, step=1, key="matsuri_kenshu_L")
         
     submit_button = st.form_submit_button(label="データを送信する")
 
@@ -86,48 +86,30 @@ if submit_button:
     else:
         with st.spinner("データを送信中..."):
             try:
-                # 🛠️ 自動採番：現在の最大Noを取得して＋1する
-                all_rows = worksheet.get_all_values()
-                if len(all_rows) <= 1:
-                    next_no = 1
-                else:
-                    try:
-                        next_no = int(all_rows[-1][0]) + 1
-                    except:
-                        next_no = len(all_rows)
-                
-                # 🛠️ 日付フォーマット変換
+                # 日付フォーマット変換
                 formatted_date = input_date.strftime("%Y-%m-%d")
                 
-                # 🛠️ 自動計算：12個の項目（A〜L）の金額をすべて合算して「委託料(合計)」を算出
-                total_fee = (
-                    fee_A + fee_B + fee_C + fee_D +
-                    fee_E + fee_F + fee_G + fee_H +
-                    fee_I + fee_J + fee_K + fee_L
-                )
-                
-                # 🛠️ A列からN列までの14項目を完全に一致させたデータリスト
-                # [No, 氏名, 日付, 項目A, 項目B, 項目C, 項目D, 項目E, 項目F, 項目G, 項目H, 項目I, 項目J, 委託料]
+                # 🛠️ スプレッドシートの「A列：日付、B列：氏名」から始まる順序に完全一致させたリスト（計14列）
                 row_data = [
-                    next_no,
-                    staff_name,
-                    formatted_date,
-                    int(fee_A), # D列
-                    int(fee_B), # E列
-                    int(fee_C), # F列
-                    int(fee_D), # G列
-                    int(fee_E), # H列
-                    int(fee_F), # I列
-                    int(fee_G), # J列
-                    int(fee_H), # K列
-                    int(fee_I), # L列
-                    int(fee_J), # M列
-                    int(total_fee) # N列: 委託料合計
+                    formatted_date, # A列: 日付
+                    staff_name,     # B列: 氏名
+                    int(fee_A),     # C列
+                    int(fee_B),     # D列
+                    int(fee_C),     # E列
+                    int(fee_D),     # F列
+                    int(fee_E),     # G列
+                    int(fee_F),     # H列
+                    int(fee_G),     # I列
+                    int(fee_H),     # J列
+                    int(fee_I),     # K列
+                    int(fee_J),     # L列
+                    int(fee_K),     # M列
+                    int(fee_L)      # N列
                 ]
                 
                 # スプレッドシートの最終行に追加
                 worksheet.append_row(row_data)
-                st.success(f"🎉 No.{next_no} のデータが正常に登録されました！（委託料合計: {total_fee:,}円）")
+                st.success("🎉 データが正常に登録されました！")
                 
             except Exception as e:
                 st.error(f"データの送信中にエラーが発生しました: {e}")
