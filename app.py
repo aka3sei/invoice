@@ -14,53 +14,75 @@ def get_gspread_client():
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
     ]
-    # Secretsから認証情報を取得
     secret_credentials = dict(st.secrets["gcp_service_account"])
     credentials = Credentials.from_service_account_info(secret_credentials, scopes=scopes)
     return gspread.authorize(credentials)
 
 try:
     gc = get_gspread_client()
-    # ご指定のスプレッドシートID
     spreadsheet_key = "1fs2WPUVUugxZeobq_fsubPqu9XO1GTr8dWvcgGJPvcA" 
     sh = gc.open_by_key(spreadsheet_key)
-    
-    # 💡実際のシート名（タブ名）が「Daily_Report」以外の場合は、ここを書き換えてください（例: "シート1" など）
     worksheet = sh.worksheet("Daily_Report")
     
 except Exception as e:
-    # 🔍 エラーの原因を画面に詳しく特定して表示する機能
     st.error("🚨 Google スプレッドシートへの接続に失敗しました。")
-    st.warning("【エラー特定のための詳細メッセージ（ここを教えてください）】")
     st.code(f"{e}")
-    st.code(traceback.format_exc())
     st.stop()
 
 
 # --- 2. アプリ画面（UI）の構築 ---
 st.title("📝 データ入力フォーム")
-st.write("スプレッドシートの項目を入力してください。")
+st.write("スプレッドシートの各項目を入力してください。")
 
 with st.form(key="data_input_form", clear_on_submit=True):
     
-    # 1. 氏名
+    # 📌 基本情報
+    st.subheader("👤 基本情報")
     staff_name = st.text_input("氏名", placeholder="例: 景 曉風")
-    
-    # 2. 日付（デフォルトは今日）
     input_date = st.date_input("日付", datetime.date.today())
     
-    # 3. 委託料
-    fee = st.number_input("委託料（円）", min_value=0, value=0, step=1000)
+    st.markdown("---")
     
+    # 📌 区分1 (項目A〜D)
+    st.subheader("📁 区分 1")
+    col1_1, col1_2 = st.columns(2)
+    with col1_1:
+        fee_A = st.number_input("項目A", min_value=0, value=0, step=1000)
+        fee_B = st.number_input("項目B", min_value=0, value=0, step=1000)
+    with col1_2:
+        fee_C = st.number_input("項目C", min_value=0, value=0, step=1000)
+        fee_D = st.number_input("項目D", min_value=0, value=0, step=1000)
+        
+    st.markdown("---")
+    
+    # 📌 区分2 (項目E〜H)
+    st.subheader("📁 区分 2")
+    col2_1, col2_2 = st.columns(2)
+    with col2_1:
+        fee_E = st.number_input("項目E", min_value=0, value=0, step=1000)
+        fee_F = st.number_input("項目F", min_value=0, value=0, step=1000)
+    with col2_2:
+        fee_G = st.number_input("項目G", min_value=0, value=0, step=1000)
+        fee_H = st.number_input("項目H", min_value=0, value=0, step=1000)
+        
+    st.markdown("---")
+    
+    # 📌 区分3 (項目I〜L) ※M列まで対応
+    st.subheader("📁 区分 3")
+    col3_1, col3_2 = st.columns(2)
+    with col3_1:
+        fee_I = st.number_input("項目I", min_value=0, value=0, step=1000)
+        fee_J = st.number_input("項目J", min_value=0, value=0, step=1000)
+    with col3_2:
+        fee_K = st.number_input("項目K", min_value=0, value=0, step=1000)
+        fee_L = st.number_input("項目L", min_value=0, value=0, step=1000)
+        
     submit_button = st.form_submit_button(label="データを送信する")
 
 # --- 3. 送信・データ変換処理 ---
 if submit_button:
-    # バリデーション（必須入力のチェック）
     if not staff_name:
         st.error("氏名は必ず入力してください。")
-    elif fee == 0:
-        st.error("委託料は0より大きい数値を入力してください。")
     else:
         with st.spinner("データを送信中..."):
             try:
@@ -74,21 +96,38 @@ if submit_button:
                     except:
                         next_no = len(all_rows)
                 
-                # 🛠️ 日付フォーマット変換：「YYYY-MM-DD」形式
+                # 🛠️ 日付フォーマット変換
                 formatted_date = input_date.strftime("%Y-%m-%d")
                 
-                # 🛠️ スプレッドシートの項目（列）に完全一致させたデータ構造
-                # [No, 氏名, 日付, 委託料]
+                # 🛠️ 自動計算：12個の項目（A〜L）の金額をすべて合算して「委託料(合計)」を算出
+                total_fee = (
+                    fee_A + fee_B + fee_C + fee_D +
+                    fee_E + fee_F + fee_G + fee_H +
+                    fee_I + fee_J + fee_K + fee_L
+                )
+                
+                # 🛠️ A列からN列までの14項目を完全に一致させたデータリスト
+                # [No, 氏名, 日付, 項目A, 項目B, 項目C, 項目D, 項目E, 項目F, 項目G, 項目H, 項目I, 項目J, 委託料]
                 row_data = [
                     next_no,
                     staff_name,
                     formatted_date,
-                    int(fee)
+                    int(fee_A), # D列
+                    int(fee_B), # E列
+                    int(fee_C), # F列
+                    int(fee_D), # G列
+                    int(fee_E), # H列
+                    int(fee_F), # I列
+                    int(fee_G), # J列
+                    int(fee_H), # K列
+                    int(fee_I), # L列
+                    int(fee_J), # M列
+                    int(total_fee) # N列: 委託料合計
                 ]
                 
                 # スプレッドシートの最終行に追加
                 worksheet.append_row(row_data)
-                st.success(f"🎉 No.{next_no} のデータが正常に登録されました！")
+                st.success(f"🎉 No.{next_no} のデータが正常に登録されました！（委託料合計: {total_fee:,}円）")
                 
             except Exception as e:
                 st.error(f"データの送信中にエラーが発生しました: {e}")
