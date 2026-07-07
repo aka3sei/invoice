@@ -38,44 +38,44 @@ with st.form(key="data_input_form", clear_on_submit=True):
     
     # 📌 基本情報
     st.subheader("👤 基本情報")
-    staff_name = st.text_input("氏名", placeholder="例: 景 曉風")
+    staff_name = st.text_input("氏名", placeholder="例: 田中　太郎")
     input_date = st.date_input("日付", datetime.date.today())
     
     st.markdown("---")
     
-    # 📌 区分1 (項目A〜D)
-    st.subheader("📁 区分 1")
+    # 📌 matsuri 民泊清掃管理業務委託料 (項目C〜F)
+    st.subheader("📁 matsuri 民泊清掃管理業務委託料")
     col1_1, col1_2 = st.columns(2)
     with col1_1:
-        fee_A = st.number_input("項目A", min_value=0, value=0, step=1000)
-        fee_B = st.number_input("項目B", min_value=0, value=0, step=1000)
+        fee_A = st.number_input("0.0～30.0（単位：㎡）", min_value=0, value=0, step=1)
+        fee_B = st.number_input("30.1～45.0（単位：㎡）", min_value=0, value=0, step=1)
     with col1_2:
-        fee_C = st.number_input("項目C", min_value=0, value=0, step=1000)
-        fee_D = st.number_input("項目D", min_value=0, value=0, step=1000)
+        fee_C = st.number_input("45.1～60.0（単位：㎡）", min_value=0, value=0, step=1)
+        fee_D = st.number_input("60.1～75.0（単位：㎡）", min_value=0, value=0, step=1)
         
     st.markdown("---")
     
-    # 📌 区分2 (項目E〜H)
-    st.subheader("📁 区分 2")
+    # 📌 matsuri 管理清掃時業務委託料 (項目G〜J)
+    st.subheader("📁 matsuri 管理清掃時業務委託料")
     col2_1, col2_2 = st.columns(2)
     with col2_1:
-        fee_E = st.number_input("項目E", min_value=0, value=0, step=1000)
-        fee_F = st.number_input("項目F", min_value=0, value=0, step=1000)
+        fee_E = st.number_input("0.0～30.0（単位：㎡）", min_value=0, value=0, step=1)
+        fee_F = st.number_input("30.1～45.0（単位：㎡）", min_value=0, value=0, step=1)
     with col2_2:
-        fee_G = st.number_input("項目G", min_value=0, value=0, step=1000)
-        fee_H = st.number_input("項目H", min_value=0, value=0, step=1000)
+        fee_G = st.number_input("45.1～60.0（単位：㎡）", min_value=0, value=0, step=1)
+        fee_H = st.number_input("60.1～75.0（単位：㎡）", min_value=0, value=0, step=1)
         
     st.markdown("---")
     
-    # 📌 区分3 (項目I〜L) ※M列まで対応
-    st.subheader("📁 区分 3")
+    # 📌 matsuri 研修時業務委託料 (項目K〜N) 
+    st.subheader("📁 matsuri 研修時業務委託料")
     col3_1, col3_2 = st.columns(2)
     with col3_1:
-        fee_I = st.number_input("項目I", min_value=0, value=0, step=1000)
-        fee_J = st.number_input("項目J", min_value=0, value=0, step=1000)
+        fee_I = st.number_input("0.0～30.0（単位：㎡）", min_value=0, value=0, step=1)
+        fee_J = st.number_input("30.1～45.0（単位：㎡）", min_value=0, value=0, step=1)
     with col3_2:
-        fee_K = st.number_input("項目K", min_value=0, value=0, step=1000)
-        fee_L = st.number_input("項目L", min_value=0, value=0, step=1000)
+        fee_K = st.number_input("45.1～60.0（単位：㎡）", min_value=0, value=0, step=1)
+        fee_L = st.number_input("60.1～75.0（単位：㎡）", min_value=0, value=0, step=1)
         
     submit_button = st.form_submit_button(label="データを送信する")
 
