@@ -22,6 +22,8 @@ try:
     # ご指定のスプレッドシートID
     spreadsheet_key = "1fs2WPUVUugxZeobq_fsubPqu9XO1GTr8dWvcgGJPvcA" 
     sh = gc.open_by_key(spreadsheet_key)
+    
+    # ※実際のシート名（タブ名）が「Daily_Report」以外の場合は、ここを書き換えてください（例: "シート1" など）
     worksheet = sh.worksheet("Daily_Report")
 except Exception as e:
     st.error(f"Google スプレッドシートへの接続に失敗しました。詳細エラー: {e}")
@@ -34,48 +36,27 @@ st.write("スプレッドシートの項目を入力してください。")
 
 with st.form(key="data_input_form", clear_on_submit=True):
     
-    # 1. 所在地
-    location = st.text_input("所在地")
+    # 1. 日付（デフォルトは今日）
+    input_date = st.date_input("日付", datetime.date.today())
     
-    # 2. マンション名
-    mansion_name = st.text_input("マンション名")
+    # 2. 内容
+    content = st.text_input("内容")
     
-    st.markdown("---")
-    
-    # 3. 合計賃料（円）※賃料と管理費（共益費）を合算した金額
-    total_rent = st.number_input("合計賃料（円）", min_value=0, value=0, step=1000)
-    
-    # 4. 専有面積（㎡）
-    area = st.number_input("専有面積（㎡）", min_value=0.0, value=0.0, step=0.1, format="%.2f")
-    
-    st.markdown("---")
-    
-    # 5. 築年
-    age = st.number_input("築年", min_value=0, value=0, step=1)
-    
-    # 6. 駅徒歩（分）
-    walk_time = st.number_input("駅徒歩（分）", min_value=0, value=0, step=1)
-    
-    st.markdown("---")
-    
-    # 7. 成約日（デフォルトは今日）
-    contract_date = st.date_input("成約日", datetime.date.today())
+    # 3. 委託料
+    fee = st.number_input("委託料", min_value=0, value=0, step=1000)
     
     submit_button = st.form_submit_button(label="データを送信する")
 
 # --- 3. 送信・データ変換処理 ---
 if submit_button:
-    # バリデーション（必須項目のチェック）
-    if not location or not mansion_name:
-        st.error("所在地とマンション名は必ず入力してください。")
-    elif total_rent == 0 or area == 0.0:
-        st.error("合計賃料と専有面積は0より大きい数値を入力してください。")
+    # バリデーション（必須入力のチェック）
+    if not content:
+        st.error("内容は必ず入力してください。")
+    elif fee == 0:
+        st.error("委託料は0より大きい数値を入力してください。")
     else:
         with st.spinner("データを送信中..."):
             try:
-                # 🛠️ 自動計算：平米単価（合計賃料 ÷ 専有面積、小数点以下切り捨て）
-                price_per_m2 = int(total_rent // area)
-                
                 # 🛠️ 自動採番：現在の最大Noを取得して＋1する
                 all_rows = worksheet.get_all_values()
                 if len(all_rows) <= 1:
@@ -87,20 +68,15 @@ if submit_button:
                         next_no = len(all_rows)
                 
                 # 🛠️ 日付フォーマット変換：「YYYY-MM-DD」形式
-                formatted_date = contract_date.strftime("%Y-%m-%d")
+                formatted_date = input_date.strftime("%Y-%m-%d")
                 
                 # 🛠️ スプレッドシートの項目（列）に完全一致させたデータ構造
-                # [No, 所在地, マンション名, 合計賃料(円), 専有面積(㎡), 平米単価(円/㎡), 築年, 駅徒歩(分), 成約日]
+                # [No, 日付, 内容, 委託料]
                 row_data = [
                     next_no,
-                    location,
-                    mansion_name,
-                    int(total_rent),
-                    float(area),
-                    price_per_m2,
-                    int(age),
-                    int(walk_time),
-                    formatted_date
+                    formatted_date,
+                    content,
+                    int(fee)
                 ]
                 
                 # スプレッドシートの最終行に追加
