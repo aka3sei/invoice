@@ -1,6 +1,7 @@
 import streamlit as st
 import datetime
 import gspread
+import traceback
 from google.oauth2.service_account import Credentials
 
 # ページの設定
@@ -13,6 +14,7 @@ def get_gspread_client():
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
     ]
+    # Secretsから認証情報を取得
     secret_credentials = dict(st.secrets["gcp_service_account"])
     credentials = Credentials.from_service_account_info(secret_credentials, scopes=scopes)
     return gspread.authorize(credentials)
@@ -23,10 +25,15 @@ try:
     spreadsheet_key = "1fs2WPUVUugxZeobq_fsubPqu9XO1GTr8dWvcgGJPvcA" 
     sh = gc.open_by_key(spreadsheet_key)
     
-    # ※実際のシート名（タブ名）が「Daily_Report」以外の場合は、ここを書き換えてください（例: "シート1" など）
+    # 💡実際のシート名（タブ名）が「Daily_Report」以外の場合は、ここを書き換えてください（例: "シート1" など）
     worksheet = sh.worksheet("Daily_Report")
+    
 except Exception as e:
-    st.error(f"Google スプレッドシートへの接続に失敗しました。詳細エラー: {e}")
+    # 🔍 エラーの原因を画面に詳しく特定して表示する機能
+    st.error("🚨 Google スプレッドシートへの接続に失敗しました。")
+    st.warning("【エラー特定のための詳細メッセージ（ここを教えてください）】")
+    st.code(f"{e}")
+    st.code(traceback.format_exc())
     st.stop()
 
 
@@ -36,22 +43,22 @@ st.write("スプレッドシートの項目を入力してください。")
 
 with st.form(key="data_input_form", clear_on_submit=True):
     
-    # 1. 日付（デフォルトは今日）
+    # 1. 氏名
+    staff_name = st.text_input("氏名", placeholder="例: 景 曉風")
+    
+    # 2. 日付（デフォルトは今日）
     input_date = st.date_input("日付", datetime.date.today())
     
-    # 2. 内容
-    content = st.text_input("内容")
-    
     # 3. 委託料
-    fee = st.number_input("委託料", min_value=0, value=0, step=1000)
+    fee = st.number_input("委託料（円）", min_value=0, value=0, step=1000)
     
     submit_button = st.form_submit_button(label="データを送信する")
 
 # --- 3. 送信・データ変換処理 ---
 if submit_button:
     # バリデーション（必須入力のチェック）
-    if not content:
-        st.error("内容は必ず入力してください。")
+    if not staff_name:
+        st.error("氏名は必ず入力してください。")
     elif fee == 0:
         st.error("委託料は0より大きい数値を入力してください。")
     else:
@@ -71,11 +78,11 @@ if submit_button:
                 formatted_date = input_date.strftime("%Y-%m-%d")
                 
                 # 🛠️ スプレッドシートの項目（列）に完全一致させたデータ構造
-                # [No, 日付, 内容, 委託料]
+                # [No, 氏名, 日付, 委託料]
                 row_data = [
                     next_no,
+                    staff_name,
                     formatted_date,
-                    content,
                     int(fee)
                 ]
                 
@@ -85,3 +92,4 @@ if submit_button:
                 
             except Exception as e:
                 st.error(f"データの送信中にエラーが発生しました: {e}")
+                st.code(traceback.format_exc())
